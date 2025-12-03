@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Звукозапись</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #1a1a1a; color: #0f0; padding: 20px; }
+        .console { background: #000; border: 2px solid #0f0; border-radius: 8px; padding: 20px; max-width: 900px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,255,0,0.3); }
+        h1 { color: #0f0; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px #0f0; }
+        .output { background: #0a0a0a; border: 1px solid #0f0; padding: 15px; min-height: 400px; max-height: 500px; overflow-y: auto; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+        .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        button { background: #003300; color: #0f0; border: 2px solid #0f0; padding: 12px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; transition: all 0.3s; }
+        button:hover { background: #0f0; color: #000; box-shadow: 0 0 15px #0f0; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #0f0; }
+        input { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; padding: 8px; width: 100%; font-family: 'Courier New', monospace; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="console">
+        <h1>ЗВУКОЗАПИСЬ - МЕНЕДЖЕР КОМПОЗИЦИЙ</h1>
+        <div class="output" id="output"></div>
+        <div class="menu">
+            <button onclick="app.showAllTracks()">Показать все треки</button>
+            <button onclick="app.calcDuration()">Общая продолжительность</button>
+            <button onclick="app.sortByGenre()">Сортировать по стилю</button>
+            <button onclick="app.searchByDuration()">Поиск по длительности</button>
+            <button onclick="app.addTrack()">Добавить трек</button>
+            <button onclick="app.saveToDisk()">Записать на диск</button>
+        </div>
+        <div id="inputArea" class="hidden">
+            <div class="input-group">
+                <label for="minDur">Минимальная длительность: <span id="minValue">60</span> сек</label>
+                <input type="range" id="minDur" min="0" max="1000" step="1" value="60" oninput="updateMinValue(this.value)">
+                <script>    
+                    function updateMinValue(value) {
+                        document.getElementById('minValue').textContent = value;
+                    }
+                </script>
+            </div>
+            <div class="input-group">
+                <label for="maxDur">Максимальная длительность: <span id="maxValue">300</span> сек</label>
+                <input type="range" id="maxDur" min="0" max="1000" step="1" value="300" oninput="updateMaxValue(this.value)">
+                <script>
+                    function updateMaxValue(value) {
+                        document.getElementById('maxValue').textContent = value;
+                    }
+                </script>
+            </div>
+            <button onclick="app.executeSearch()">Выполнить поиск</button>
+        </div>
+        <div id="addTrackArea" class="hidden">
+            <div class="input-group">
+                <label>Название трека:</label>
+                <input type="text" id="trackTitle" placeholder="Введите название">
+            </div>
+            <div class="input-group">
+                <label>Исполнитель:</label>
+                <input type="text" id="trackArtist" placeholder="Введите исполнителя">
+            </div>
+            <div class="input-group">
+                <label>Длительность (в секундах):</label>
+                <input type="number" id="trackDuration" placeholder="Например: 240">
+            </div>
+            <div class="input-group">
+                <label>Жанр:</label>
+                <select id="trackGenre" onchange="app.updateExtraField()">
+                    <option value="">Выберите жанр</option>
+                    <option value="Rock">Rock</option>
+                    <option value="Pop">Pop</option>
+                    <option value="Jazz">Jazz</option>
+                    <option value="Electronic">Electronic</option>
+                </select>
+            </div>
+            <div class="input-group" id="extraField"></div>
+            <button onclick="app.saveNewTrack()">Сохранить трек</button>
+        </div>
+    </div>
+
+    <script>
+
+class MusicComposition {
+    constructor(title, artist, duration) {
+        this._title = title;
+        this._artist = artist;
+        this._duration = duration;
+    }
+    
+    getTitle() { return this._title; }
+    getArtist() { return this._artist; }
+    getDuration() { return this._duration; }
+    getGenre() { return "Unknown"; }
+    
+    getInfo() {
+        return `${this.getTitle()} - ${this.getArtist()} [${this.formatDuration()}] (${this.getGenre()})`;
+    }
+    
+    formatDuration() {
+        const m = Math.floor(this._duration / 60);
+        const s = this._duration % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+}
+
+class RockTrack extends MusicComposition {
+    constructor(title, artist, duration, subgenre = "Classic Rock") {
+        super(title, artist, duration);
+        this._subgenre = subgenre;
+    }
+    getGenre() { return `Rock (${this._subgenre})`; }
+}
+
+class PopTrack extends MusicComposition {
+    constructor(title, artist, duration, year) {
+        super(title, artist, duration);
+        this._year = year;
+    }
+    getGenre() { return `Pop (${this._year})`; }
+}
+
+class JazzTrack extends MusicComposition {
+    constructor(title, artist, duration, instrument) {
+        super(title, artist, duration);
+        this._instrument = instrument;
+    }
+    getGenre() { return `Jazz (${this._instrument})`; }
+}
+
+class ElectronicTrack extends MusicComposition {
+    constructor(title, artist, duration, bpm) {
+        super(title, artist, duration);
+        this._bpm = bpm;
+    }
+    getGenre() { return `Electronic (${this._bpm})`; }
+}
+
+
+class DiskCollection {
+    constructor(name) {
+        this._name = name;
+        this._tracks = [];
+    }
+    
+    addTrack(track) {
+        this._tracks.push(track);
+    }
+    
+    getTracks() { return this._tracks; }
+    
+    getTotalDuration() {
+        return this._tracks.reduce((sum, t) => sum + t.getDuration(), 0);
+    }
+    
+    sortByGenre() {
+        this._tracks.sort((a, b) => a.getGenre().localeCompare(b.getGenre()));
+    }
+    
+    findByDurationRange(min, max) {
+        return this._tracks.filter(t => t.getDuration() >= min && t.getDuration() <= max);
+    }
+    
+    saveToDisk() {
+        const data = {
+            name: this._name,
+            tracks: this._tracks.map(t => ({
+                title: t.getTitle(),
+                artist: t.getArtist(),
+                duration: t.getDuration(),
+                genre: t.getGenre()
+            }))
+        };
+        return JSON.stringify(data, null, 2);
+    }
+}
+
+
+class MusicApp {
+    constructor() {
+        this.disk = new DiskCollection("My Collection 2025");
+        this.output = document.getElementById('output');
+        this.initializeData();
+    }
+    
+    initializeData() {
+        this.disk.addTrack(new RockTrack("Bohemian Rhapsody", "Queen", 354, "Progressive Rock"));
+        this.disk.addTrack(new RockTrack("Stairway to Heaven", "Led Zeppelin", 482));
+        this.disk.addTrack(new PopTrack("Billie Jean", "Michael Jackson", 294, 1982));
+        this.disk.addTrack(new PopTrack("Shape of You", "Ed Sheeran", 233, 2017));
+        this.disk.addTrack(new JazzTrack("Take Five", "Dave Brubeck", 324, "Piano"));
+        this.disk.addTrack(new JazzTrack("So What", "Miles Davis", 562, "Trumpet"));
+        this.disk.addTrack(new ElectronicTrack("Strobe", "Deadmau5", 640, 128));
+        this.disk.addTrack(new ElectronicTrack("Levels", "Avicii", 203, 126));
+        this.disk.addTrack(new RockTrack("Smells Like Teen Spirit", "Nirvana", 301, "Grunge"));
+        this.disk.addTrack(new PopTrack("Blinding Lights", "The Weeknd", 200, 2019));
+        this.print("СИСТЕМА ИНИЦИАЛИЗИРОВАНА.<br>Загружено " + this.disk.getTracks().length + " треков.<br>");
+    }
+    
+    print(msg) {
+        this.output.innerHTML += msg + "<br>";
+        this.output.scrollTop = this.output.scrollHeight;
+    }
+    
+    clear() {
+        this.output.innerHTML = "";
+    }
+    
+    showAllTracks() {
+        this.clear();
+        this.print("ВСЕ ТРЕКИ В КОЛЛЕКЦИИ:<br>");
+        this.disk.getTracks().forEach((t, i) => {
+            this.print(`${(i+1).toString().padStart(2, '0')}. ${t.getInfo()}`);
+        });
+    }
+    
+    calcDuration() {
+        const total = this.disk.getTotalDuration();
+        const hours = Math.floor(total / 3600);
+        const mins = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+        this.clear();   
+        this.print("ОБЩАЯ ПРОДОЛЖИТЕЛЬНОСТЬ:<br>");
+        this.print(`Всего треков: ${this.disk.getTracks().length}`);
+        this.print(`Общее время: ${hours}ч ${mins}м ${secs}с (${total} секунд)`);
+    }
+    
+    sortByGenre() {
+        this.disk.sortByGenre();
+        this.clear();
+        this.print("ТРЕКИ ОТСОРТИРОВАНЫ ПО СТИЛЮ:<br>");
+        let currentGenre = "";
+        this.disk.getTracks().forEach((t, i) => {
+            const genre = t.getGenre().split(' ')[0];
+            if (genre !== currentGenre) {
+                if (currentGenre !== "") this.print("");
+                this.print(`▼ ${genre.toUpperCase()}:`);
+                currentGenre = genre;
+            }
+            this.print(`  ${(i+1).toString().padStart(2, '0')}. ${t.getInfo()}`);
+        });
+        this.print("<br>");
+    }
+    
+    searchByDuration() {
+        document.getElementById('inputArea').classList.remove('hidden');
+        this.clear();
+        this.print("ПОИСК ПО ДЛИТЕЛЬНОСТИ:");
+        this.print("Введите диапазон длительности в секундах ниже:");
+    }
+    
+    executeSearch() {
+        const min = parseInt(document.getElementById('minDur').value);
+        const max = parseInt(document.getElementById('maxDur').value);
+        const results = this.disk.findByDurationRange(min, max);
+        this.clear();
+        this.print(`РЕЗУЛЬТАТЫ ПОИСКА (${min}-${max} сек)<br>`);
+        
+        if (results.length === 0) {
+            this.print("✗ Треки не найдены в заданном диапазоне.");
+        } else {
+            this.print(`Найдено треков: ${results.length}<br>`);
+            results.forEach((t, i) => {
+                this.print(`${(i+1).toString().padStart(2, '0')}. ${t.getInfo()}`);
+            });
+        }
+        this.print("<br>");
+        document.getElementById('inputArea').classList.add('hidden');
+    }
+    
+    addTrack() {
+        this.clear();
+        this.print("ДОБАВЛЕНИЕ НОВОГО ТРЕКА:<br>");
+        document.getElementById('inputArea').classList.add('hidden');
+        document.getElementById('addTrackArea').classList.remove('hidden');
+        this.print("Заполните форму ниже и нажмите 'Сохранить трек'.");
+    }
+
+    updateExtraField() {
+        const genre = document.getElementById('trackGenre').value;
+        const extra = document.getElementById('extraField');
+        extra.innerHTML = "";
+
+        if (genre === "Rock") {
+            extra.innerHTML = `
+                <label>Поджанр:</label>
+                <input type="text" id="extraInput" placeholder="Classic Rock">
+            `;
+        } else if (genre === "Pop") {
+            extra.innerHTML = `
+                <label>Год выпуска:</label>
+                <input type="number" id="extraInput" placeholder="2025">
+            `;
+        } else if (genre === "Jazz") {
+            extra.innerHTML = `
+                <label>Основной инструмент:</label>
+                <input type="text" id="extraInput" placeholder="Saxophone">
+            `;
+        } else if (genre === "Electronic") {
+            extra.innerHTML = `
+                <label>BPM:</label>
+                <input type="number" id="extraInput" placeholder="120">
+            `;
+        }
+    }
+
+    saveNewTrack() {
+        const title = document.getElementById('trackTitle').value.trim();
+        const artist = document.getElementById('trackArtist').value.trim();
+        const duration = parseInt(document.getElementById('trackDuration').value);
+        const genre = document.getElementById('trackGenre').value;
+        const extra = document.getElementById('extraInput')?.value.trim();
+
+        if (!title || !artist || !duration || !genre) {
+            alert("Пожалуйста, заполните все обязательные поля!");
+            return;
+        }
+
+        let track;
+        switch (genre) {
+            case "Rock":
+                track = new RockTrack(title, artist, duration, extra || "Classic Rock");
+                break;
+            case "Pop":
+                track = new PopTrack(title, artist, duration, extra ? parseInt(extra) : 2025 || "2025");
+                break;
+            case "Jazz":
+                track = new JazzTrack(title, artist, duration, extra || "Saxophone");
+                break;
+            case "Electronic":
+                track = new ElectronicTrack(title, artist, duration, extra ? parseInt(extra) : 120 || "120");
+                break;
+        }
+
+        this.disk.addTrack(track);
+        this.clear();
+        this.print("ТРЕК УСПЕШНО ДОБАВЛЕН!<br>");
+        this.print(`${track.getInfo()}`);
+        this.print(`<br>Всего треков: ${this.disk.getTracks().length}`);
+        document.getElementById('addTrackArea').classList.add('hidden');
+    }
+    
+    saveToDisk() {
+        const data = this.disk.saveToDisk();
+        this.clear();
+        this.print("СБОРКА ЗАПИСАНА НА ДИСК");
+        this.print("Данные сохранены в формате JSON:<br>");
+        this.print(data);
+        
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'music_collection.json';
+        a.click();
+    }
+}
+
+
+const app = new MusicApp();
+    </script>
+</body>
+</html>
