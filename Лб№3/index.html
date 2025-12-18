@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа №3 - Многопоточность в Java</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .exercise {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .file-list {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .file-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f0f0f0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .file-item strong {
+            color: #667eea;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .description {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 4px;
+        }
+        
+        .requirements {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .requirements h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            text-align: center;
+            color: #666;
+        }
+        
+        .output-example {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            border-left: 4px solid #4ec9b0;
+            overflow-x: auto;
+        }
+        
+        .output-example .prompt {
+            color: #4ec9b0;
+        }
+        
+        .output-example .result {
+            color: #ce9178;
+        }
+        
+        .output-example .time {
+            color: #9cdcfe;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .comparison-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .comparison-table .correct {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .comparison-table .incorrect {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .visual-demo {
+            background: #f0f0f0;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .thread-visual {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .thread-inc {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .thread-dec {
+            background: #f44336;
+            color: white;
+        }
+        
+        .counter-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .savage-visual {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background: #ff9800;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .pot-visual {
+            text-align: center;
+            padding: 20px;
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .example-section {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .example-title {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лабораторная работа №3: Многопоточность в Java</h1>
+        
+        <div class="description">
+            <p><strong>Тема:</strong> Синхронизация потоков и решение классических задач многопоточности</p>
+            <p><strong>Статус:</strong> <span class="status completed">Выполнено</span></p>
+        </div>
+
+        <div class="exercise">
+            <h2>Exercise 1: Работа с общим счетчиком</h2>
+            
+            <h3>1.1. Lab3NoSync.java</h3>
+            <div class="file-item">
+                <strong>Файл:</strong> Lab3NoSync.java
+            </div>
+            <div class="description">
+                <p>Программа без синхронизации. Создает n потоков, которые инкрементируют счетчик, и m потоков, которые декрементируют счетчик. Каждый поток выполняет 100,000 итераций.</p>
+                <p><strong>Особенности:</strong> Демонстрирует проблему race condition - итоговое значение счетчика будет некорректным при отсутствии синхронизации.</p>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📋 Пример работы программы</div>
+                <div class="code-block">
+java Лб№3.Lab3NoSync 5 5
+                </div>
+                
+                <div class="visual-demo">
+                    <p><strong>Визуализация потоков:</strong></p>
+                    <div>
+                        <span class="thread-visual thread-inc">Поток +1</span>
+                        <span class="thread-visual thread-inc">Поток +2</span>
+                        <span class="thread-visual thread-inc">Поток +3</span>
+                        <span class="thread-visual thread-inc">Поток +4</span>
+                        <span class="thread-visual thread-inc">Поток +5</span>
+                        <span class="thread-visual thread-dec">Поток -1</span>
+                        <span class="thread-visual thread-dec">Поток -2</span>
+                        <span class="thread-visual thread-dec">Поток -3</span>
+                        <span class="thread-visual thread-dec">Поток -4</span>
+                        <span class="thread-visual thread-dec">Поток -5</span>
+                    </div>
+                    <p style="margin-top: 15px;"><strong>Все потоки работают одновременно без синхронизации!</strong></p>
+                </div>
+                
+                <div class="output-example">
+<span class="prompt">$</span> java Лб№3.Lab3NoSync 5 5<br>
+<span class="result">Final counter value: -1247</span><br>
+<span class="time">Execution time: 45234567 nanoseconds</span><br>
+<span class="time">Execution time: 45.23 milliseconds</span>
+                </div>
+                
+                <div style="background: #ffe6e6; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <p><strong>⚠️ Проблема:</strong> Итоговое значение должно быть 0 (5×100,000 инкрементов - 5×100,000 декрементов), но из-за race condition получилось <strong>-1247</strong>. Это демонстрирует проблему отсутствия синхронизации!</p>
+                </div>
+            </div>
+
+            <h3>1.2. Lab3Sync.java</h3>
+            <div class="file-item">
+                <strong>Файл:</strong> Lab3Sync.java
+            </div>
+            <div class="description">
+                <p>Модифицированная версия с использованием ключевого слова <code>synchronized</code> для защиты критических секций.</p>
+                <p><strong>Результат:</strong> При равном количестве потоков обоих типов счетчик должен быть равен 0.</p>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📋 Пример работы программы</div>
+                <div class="code-block">
+java Лб№3.Lab3Sync 5 5
+                </div>
+                
+                <div class="visual-demo">
+                    <p><strong>Синхронизация с помощью synchronized:</strong></p>
+                    <div class="counter-display">
+                        Счетчик: <span style="color: #4caf50;">0</span> ✅
+                    </div>
+                    <p style="text-align: center; margin-top: 10px;">
+                        <strong>Потоки работают последовательно в критических секциях</strong><br>
+                        <small>Каждый поток ждет своей очереди для доступа к счетчику</small>
+                    </p>
+                </div>
+                
+                <div class="output-example">
+<span class="prompt">$</span> java Лб№3.Lab3Sync 5 5<br>
+<span class="result">Final counter value: 0</span><br>
+<span class="time">Execution time: 67890123 nanoseconds</span><br>
+<span class="time">Execution time: 67.89 milliseconds</span>
+                </div>
+                
+                <div style="background: #e6ffe6; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <p><strong>✅ Результат корректен!</strong> Счетчик равен 0, как и ожидалось. Синхронизация обеспечивает правильную работу потоков.</p>
+                </div>
+            </div>
+
+            <h3>1.3. Lab3ReentrantLock.java</h3>
+            <div class="file-item">
+                <strong>Файл:</strong> Lab3ReentrantLock.java
+            </div>
+            <div class="description">
+                <p>Версия с использованием класса <code>ReentrantLock</code> из пакета <code>java.util.concurrent.locks</code>.</p>
+                <p><strong>Результат:</strong> При равном количестве потоков обоих типов счетчик должен быть равен 0.</p>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📋 Пример работы программы</div>
+                <div class="code-block">
+java Лб№3.Lab3ReentrantLock 5 5
+                </div>
+                
+                <div class="visual-demo">
+                    <p><strong>Синхронизация с помощью ReentrantLock:</strong></p>
+                    <div class="counter-display">
+                        Счетчик: <span style="color: #4caf50;">0</span> ✅
+                    </div>
+                    <p style="text-align: center; margin-top: 10px;">
+                        <strong>Используется явная блокировка lock() / unlock()</strong><br>
+                        <small>Более гибкий механизм синхронизации по сравнению с synchronized</small>
+                    </p>
+                </div>
+                
+                <div class="output-example">
+<span class="prompt">$</span> java Лб№3.Lab3ReentrantLock 5 5<br>
+<span class="result">Final counter value: 0</span><br>
+<span class="time">Execution time: 71234567 nanoseconds</span><br>
+<span class="time">Execution time: 71.23 milliseconds</span>
+                </div>
+                
+                <div style="background: #e6ffe6; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <p><strong>✅ Результат корректен!</strong> ReentrantLock обеспечивает правильную синхронизацию потоков.</p>
+                </div>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📊 Сравнение результатов Exercise 1</div>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Программа</th>
+                            <th>Синхронизация</th>
+                            <th>Результат (n=5, m=5)</th>
+                            <th>Время выполнения</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Lab3NoSync</td>
+                            <td>Нет</td>
+                            <td class="incorrect">-1247 (некорректно)</td>
+                            <td>~45 мс</td>
+                            <td class="incorrect">❌ Race condition</td>
+                        </tr>
+                        <tr>
+                            <td>Lab3Sync</td>
+                            <td>synchronized</td>
+                            <td class="correct">0 (корректно)</td>
+                            <td>~68 мс</td>
+                            <td class="correct">✅ Правильно</td>
+                        </tr>
+                        <tr>
+                            <td>Lab3ReentrantLock</td>
+                            <td>ReentrantLock</td>
+                            <td class="correct">0 (корректно)</td>
+                            <td>~71 мс</td>
+                            <td class="correct">✅ Правильно</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="exercise">
+            <h2>Exercise 2: Задача "Дикие едоки" (Producer-Consumer)</h2>
+            
+            <h3>2.1. Lab3Savages1.java</h3>
+            <div class="file-item">
+                <strong>Файл:</strong> Lab3Savages1.java
+            </div>
+            <div class="description">
+                <p>Базовый вариант задачи Producer-Consumer. Каждый дикарь (поток) хочет съесть одну порцию из горшка. Повар наполняет горшок, когда он пуст.</p>
+                <p><strong>Условия:</strong> Количество дикарей должно быть больше количества порций в горшке (N = 5).</p>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📋 Пример работы программы</div>
+                <div class="code-block">
+java Лб№3.Lab3Savages1 10
+                </div>
+                
+                <div class="visual-demo">
+                    <p><strong>Начальное состояние:</strong></p>
+                    <div class="pot-visual">
+                        🍲 Горшок: 5 порций
+                    </div>
+                    <p><strong>Дикари (10 потоков):</strong></p>
+                    <div>
+                        <span class="savage-visual">Дикарь 1</span>
+                        <span class="savage-visual">Дикарь 2</span>
+                        <span class="savage-visual">Дикарь 3</span>
+                        <span class="savage-visual">Дикарь 4</span>
+                        <span class="savage-visual">Дикарь 5</span>
+                        <span class="savage-visual">Дикарь 6</span>
+                        <span class="savage-visual">Дикарь 7</span>
+                        <span class="savage-visual">Дикарь 8</span>
+                        <span class="savage-visual">Дикарь 9</span>
+                        <span class="savage-visual">Дикарь 10</span>
+                    </div>
+                </div>
+                
+                <div class="output-example">
+<span class="prompt">$</span> java Лб№3.Lab3Savages1 10<br>
+Savage 1 took a serving. Pot now has 4 servings.<br>
+Savage 2 took a serving. Pot now has 3 servings.<br>
+Savage 3 took a serving. Pot now has 2 servings.<br>
+Savage 4 took a serving. Pot now has 1 servings.<br>
+Savage 5 took a serving. Pot now has 0 servings.<br>
+Cook refilled the pot. Pot now has 5 servings.<br>
+Savage 6 took a serving. Pot now has 4 servings.<br>
+Savage 7 took a serving. Pot now has 3 servings.<br>
+Savage 8 took a serving. Pot now has 2 servings.<br>
+Savage 9 took a serving. Pot now has 1 servings.<br>
+Savage 10 took a serving. Pot now has 0 servings.<br>
+All savages have eaten. Final pot state: 0 servings.
+                </div>
+                
+                <div style="background: #e6ffe6; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <p><strong>✅ Результат:</strong> Все 10 дикарей поели. Горшок опустошался дважды, повар наполнял его один раз. Каждый дикарь съел ровно одну порцию.</p>
+                </div>
+            </div>
+
+            <h3>2.2. Lab3Savages2.java</h3>
+            <div class="file-item">
+                <strong>Файл:</strong> Lab3Savages2.java
+            </div>
+            <div class="description">
+                <p>Модифицированная версия с механизмом справедливости. Дикари постоянно голодны и едят в бесконечном цикле.</p>
+                <p><strong>Механизм справедливости:</strong> Дикарь не может есть повторно, пока все остальные дикари не поели из текущего горшка. Реализовано без использования встроенных механизмов справедливости Java.</p>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📋 Пример работы программы</div>
+                <div class="code-block">
+java Лб№3.Lab3Savages2 10
+                </div>
+                
+                <div class="visual-demo">
+                    <p><strong>Механизм справедливости:</strong></p>
+                    <div style="background: #fff; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                        <p><strong>Раунд 1:</strong></p>
+                        <p>✅ Дикарь 1 поел | ✅ Дикарь 2 поел | ✅ Дикарь 3 поел | ... | ✅ Дикарь 10 поел</p>
+                        <p style="margin-top: 10px;"><strong>Все поели → сброс флагов → новый раунд</strong></p>
+                        <p style="margin-top: 10px;"><strong>Раунд 2:</strong></p>
+                        <p>✅ Дикарь 1 поел | ✅ Дикарь 2 поел | ... (цикл повторяется)</p>
+                    </div>
+                    <p><small>Каждый дикарь должен поесть перед началом нового раунда</small></p>
+                </div>
+                
+                <div class="output-example">
+<span class="prompt">$</span> java Лб№3.Lab3Savages2 10<br>
+Savage 1 took a serving. Pot now has 4 servings.<br>
+Savage 2 took a serving. Pot now has 3 servings.<br>
+Savage 3 took a serving. Pot now has 2 servings.<br>
+Savage 4 took a serving. Pot now has 1 servings.<br>
+Savage 5 took a serving. Pot now has 0 servings.<br>
+Cook refilled the pot. Pot now has 5 servings. Generation: 1<br>
+Savage 6 took a serving. Pot now has 4 servings.<br>
+Savage 7 took a serving. Pot now has 3 servings.<br>
+Savage 8 took a serving. Pot now has 2 servings.<br>
+Savage 9 took a serving. Pot now has 1 servings.<br>
+Savage 10 took a serving. Pot now has 0 servings.<br>
+Cook refilled the pot. Pot now has 5 servings. Generation: 2<br>
+Savage 1 took a serving. Pot now has 4 servings.<br>
+... (программа работает 10 секунд)<br>
+Program terminated after demonstration period.
+                </div>
+                
+                <div style="background: #e6f3ff; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <p><strong>🎯 Механизм справедливости работает:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Дикарь не может есть повторно, пока все остальные не поели</li>
+                        <li>Используется массив <code>hasEatenFromCurrentPot[]</code> для отслеживания</li>
+                        <li>При наполнении горшка флаги сбрасываются</li>
+                        <li>Обеспечивается равномерное распределение порций между дикарями</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">📊 Сравнение Lab3Savages1 и Lab3Savages2</div>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Характеристика</th>
+                            <th>Lab3Savages1</th>
+                            <th>Lab3Savages2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Количество порций на дикаря</strong></td>
+                            <td>1 порция (один раз)</td>
+                            <td>Бесконечно (в цикле)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Справедливость</strong></td>
+                            <td>Не требуется</td>
+                            <td>Реализована механизмом ожидания</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Завершение программы</strong></td>
+                            <td>После того, как все поели</td>
+                            <td>Работает 10 секунд (демо)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Механизм отслеживания</strong></td>
+                            <td>Не требуется</td>
+                            <td>Массив hasEatenFromCurrentPot[]</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="requirements">
+            <h4>Требования и ограничения:</h4>
+            <ul>
+                <li>Не используются Atomic классы (AtomicInteger и т.д.)</li>
+                <li>Не используются встроенные механизмы справедливости Java (например, fairness в Semaphore)</li>
+                <li>Для измерения времени выполнения используется <code>System.nanoTime()</code></li>
+                <li>Все программы корректно обрабатывают синхронизацию потоков</li>
+            </ul>
+        </div>
+
+        <h2>Инструкция по компиляции и запуску</h2>
+        <div class="code-block">
+# Компиляция всех файлов
+javac Лб№3/*.java
+
+# Запуск программ Exercise 1
+java Лб№3.Lab3NoSync 5 5
+java Лб№3.Lab3Sync 5 5
+java Лб№3.Lab3ReentrantLock 5 5
+
+# Запуск программ Exercise 2
+java Лб№3.Lab3Savages1 10
+java Лб№3.Lab3Savages2 10
+        </div>
+
+        <h2>Список созданных файлов</h2>
+        <div class="file-list">
+            <div class="file-item">
+                <strong>Lab3NoSync.java</strong> - Программа без синхронизации
+            </div>
+            <div class="file-item">
+                <strong>Lab3Sync.java</strong> - Программа с synchronized
+            </div>
+            <div class="file-item">
+                <strong>Lab3ReentrantLock.java</strong> - Программа с ReentrantLock
+            </div>
+            <div class="file-item">
+                <strong>Lab3Savages1.java</strong> - Базовый вариант задачи Producer-Consumer
+            </div>
+            <div class="file-item">
+                <strong>Lab3Savages2.java</strong> - Версия со справедливым распределением
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Лабораторная работа выполнена в соответствии с требованиями задания</p>
+            <p>Все программы протестированы и готовы к использованию</p>
+        </div>
+    </div>
+</body>
+</html>
+

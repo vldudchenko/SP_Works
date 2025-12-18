@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа №4 - Клиент-серверное приложение</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .component {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .architecture {
+            background: #e8f4f8;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .architecture-box {
+            display: inline-block;
+            background: white;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 2px solid #667eea;
+            font-weight: bold;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #667eea;
+            margin: 0 10px;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .output-example {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            border-left: 4px solid #4ec9b0;
+            overflow-x: auto;
+        }
+        
+        .output-example .prompt {
+            color: #4ec9b0;
+        }
+        
+        .file-list {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .file-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f0f0f0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .file-item strong {
+            color: #667eea;
+        }
+        
+        .feature-list {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .feature-list ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .feature-list li {
+            margin: 5px 0;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .info-box {
+            background: #e6f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лабораторная работа №4: Клиент-серверное приложение</h1>
+        
+        <div class="info-box">
+            <p><strong>Тема:</strong> UDP Multicast и TCP/IP клиент-серверное приложение</p>
+            <p><strong>Статус:</strong> <span class="status completed">Выполнено</span></p>
+        </div>
+
+        <h2>Архитектура системы</h2>
+        <div class="architecture">
+            <div class="architecture-box">Server<br>(UDP Multicast)</div>
+            <span class="arrow">↓</span>
+            <div class="architecture-box">IntermediateClient<br>(UDP Client + TCP Server)</div>
+            <span class="arrow">↓</span>
+            <div class="architecture-box">EndClient<br>(TCP Client + GUI)</div>
+        </div>
+        
+        <div class="info-box">
+            <p><strong>UDP Multicast:</strong> 233.0.0.1:1502</p>
+            <p><strong>TCP:</strong> localhost:1503</p>
+            <p><strong>Интервал отправки:</strong> 10 секунд</p>
+            <p><strong>Количество сохраняемых сообщений:</strong> 5</p>
+        </div>
+
+        <div class="component">
+            <h2>1. Server.java</h2>
+            <div class="file-item">
+                <strong>Файл:</strong> Server.java
+            </div>
+            <p><strong>Описание:</strong> UDP Multicast сервер, который читает сообщения из файла <code>weather.txt</code> и отправляет их каждые 10 секунд всем клиентам в группе 233.0.0.1:1502.</p>
+            
+            <h3>Особенности:</h3>
+            <ul>
+                <li>Использует UDP Multicast для широковещательной рассылки</li>
+                <li>Читает сообщения из текстового файла</li>
+                <li>Циклически отправляет все сообщения</li>
+                <li>Автоматически создает файл weather.txt, если он не существует</li>
+            </ul>
+            
+            <h3>Пример запуска:</h3>
+            <div class="code-block">
+java Server
+            </div>
+            
+            <h3>Пример вывода:</h3>
+            <div class="output-example">
+<span class="prompt">$</span> java Server<br>
+Сервер запущен. Группа: 233.0.0.1:1502<br>
+Чтение сообщений из файла: weather.txt<br>
+Загружено 8 сообщений<br>
+Начинаю отправку сообщений каждые 10 секунд...<br>
+<br>
+[Mon Jan 15 10:00:00 MSK 2024] Отправлено: Погода: Солнечно, +25°C, ветер 5 м/с<br>
+[Mon Jan 15 10:00:10 MSK 2024] Отправлено: Погода: Облачно, +18°C, ветер 8 м/с<br>
+[Mon Jan 15 10:00:20 MSK 2024] Отправлено: Погода: Дождь, +12°C, ветер 12 м/с<br>
+...
+            </div>
+        </div>
+
+        <div class="component">
+            <h2>2. IntermediateClient.java</h2>
+            <div class="file-item">
+                <strong>Файл:</strong> IntermediateClient.java
+            </div>
+            <p><strong>Описание:</strong> Промежуточный клиент, который получает UDP multicast сообщения, фильтрует их (показывает только если содержимое изменилось), хранит последние 5 сообщений и работает как TCP сервер для конечных клиентов.</p>
+            
+            <h3>Функции:</h3>
+            <ul>
+                <li>Получает UDP Multicast сообщения от сервера</li>
+                <li>Фильтрует повторяющиеся сообщения</li>
+                <li>Хранит последние 5 уникальных сообщений</li>
+                <li>Работает как TCP сервер на порту 1503</li>
+                <li>Поддерживает несколько конечных клиентов одновременно</li>
+            </ul>
+            
+            <h3>Пример запуска:</h3>
+            <div class="code-block">
+java IntermediateClient
+            </div>
+            
+            <h3>Пример вывода:</h3>
+            <div class="output-example">
+<span class="prompt">$</span> java IntermediateClient<br>
+Промежуточный клиент запущен<br>
+UDP Multicast: 233.0.0.1:1502<br>
+TCP Server: localhost:1503<br>
+Ожидание сообщений...<br>
+<br>
+TCP сервер запущен на порту 1503<br>
+[Mon Jan 15 10:00:00 MSK 2024] Получено новое сообщение: Погода: Солнечно, +25°C, ветер 5 м/с<br>
+Всего сохранено сообщений: 1<br>
+[Mon Jan 15 10:00:10 MSK 2024] Получено новое сообщение: Погода: Облачно, +18°C, ветер 8 м/с<br>
+Всего сохранено сообщений: 2<br>
+Подключен конечный клиент: /127.0.0.1:54321<br>
+Отправлено 2 сообщений конечному клиенту<br>
+...
+            </div>
+        </div>
+
+        <div class="component">
+            <h2>3. EndClient.java</h2>
+            <div class="file-item">
+                <strong>Файл:</strong> EndClient.java
+            </div>
+            <p><strong>Описание:</strong> Конечный клиент с графическим интерфейсом (Swing), который подключается к промежуточному клиенту по TCP и получает последние 5 сообщений.</p>
+            
+            <h3>Функции:</h3>
+            <ul>
+                <li>Графический интерфейс на Swing</li>
+                <li>Подключается к промежуточному клиенту по TCP</li>
+                <li>Получает и отображает последние 5 сообщений</li>
+                <li>Автоматическое обновление каждые 5 секунд</li>
+                <li>Кнопка ручного обновления</li>
+                <li>Отображение статуса подключения</li>
+            </ul>
+            
+            <h3>Пример запуска:</h3>
+            <div class="code-block">
+java EndClient
+            </div>
+            
+            <div class="info-box">
+                <p><strong>Графический интерфейс включает:</strong></p>
+                <ul>
+                    <li>Область отображения сообщений (черный фон, зеленый текст)</li>
+                    <li>Статусную строку с информацией о подключении</li>
+                    <li>Кнопку "Обновить" для ручного обновления</li>
+                    <li>Кнопку "Выход" для закрытия приложения</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="component">
+            <h2>4. weather.txt</h2>
+            <div class="file-item">
+                <strong>Файл:</strong> weather.txt
+            </div>
+            <p><strong>Описание:</strong> Текстовый файл с сообщениями о погоде. Каждая строка - отдельное сообщение, которое будет отправлено сервером.</p>
+            
+            <h3>Содержимое файла:</h3>
+            <div class="code-block">
+Погода: Солнечно, +25°C, ветер 5 м/с
+Погода: Облачно, +18°C, ветер 8 м/с
+Погода: Дождь, +12°C, ветер 12 м/с
+Погода: Ясно, +22°C, ветер 3 м/с
+Погода: Туман, +15°C, ветер 2 м/с
+Погода: Снег, -5°C, ветер 15 м/с
+Погода: Переменная облачность, +20°C, ветер 6 м/с
+Погода: Гроза, +16°C, ветер 20 м/с
+            </div>
+        </div>
+
+        <h2>Инструкция по запуску</h2>
+        <div class="code-block">
+# 1. Компиляция всех файлов
+cd Лб№4
+javac *.java
+
+# 2. Запуск сервера (в первом терминале)
+java Server
+
+# 3. Запуск промежуточного клиента (во втором терминале)
+java IntermediateClient
+
+# 4. Запуск конечного клиента (в третьем терминале)
+java EndClient
+        </div>
+
+        <div class="feature-list">
+            <h3>Особенности реализации:</h3>
+            <ul>
+                <li>✅ UDP Multicast для широковещательной рассылки сообщений</li>
+                <li>✅ Фильтрация повторяющихся сообщений в промежуточном клиенте</li>
+                <li>✅ Хранение последних 5 уникальных сообщений</li>
+                <li>✅ TCP/IP для связи между промежуточным и конечным клиентом</li>
+                <li>✅ Графический интерфейс для конечного клиента</li>
+                <li>✅ Поддержка нескольких конечных клиентов одновременно</li>
+                <li>✅ Автоматическое создание файла weather.txt при отсутствии</li>
+                <li>✅ Автоматическое обновление сообщений в GUI</li>
+            </ul>
+        </div>
+
+        <h2>Список созданных файлов</h2>
+        <div class="file-list">
+            <div class="file-item">
+                <strong>Server.java</strong> - UDP Multicast сервер
+            </div>
+            <div class="file-item">
+                <strong>IntermediateClient.java</strong> - Промежуточный клиент (UDP Client + TCP Server)
+            </div>
+            <div class="file-item">
+                <strong>EndClient.java</strong> - Конечный клиент с GUI (TCP Client)
+            </div>
+            <div class="file-item">
+                <strong>weather.txt</strong> - Файл с сообщениями о погоде
+            </div>
+            <div class="file-item">
+                <strong>README.md</strong> - Документация проекта
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа №5 - REST API Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.put { background: #ffc107; color: #333; }
+        .method.delete { background: #dc3545; }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .url {
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        
+        .info-box {
+            background: #e6f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .file-list {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .file-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f0f0f0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .file-item strong {
+            color: #667eea;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лабораторная работа №5: REST API Service</h1>
+        
+        <div class="info-box">
+            <p><strong>Тема:</strong> Разработка REST API сервиса с методами GET, POST, PUT, DELETE</p>
+            <p><strong>Домен:</strong> Управление задачами (Task Management / To-Do List)</p>
+            <p><strong>Статус:</strong> <span class="status completed">Выполнено</span></p>
+        </div>
+
+        <h2>Описание API</h2>
+        <div class="info-box">
+            <p><strong>Базовый URL:</strong> <code>http://localhost:8080/api/tasks</code></p>
+            <p>REST API для управления задачами с полной поддержкой CRUD операций.</p>
+        </div>
+
+        <h2>API Endpoints</h2>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                Получить все задачи
+            </h3>
+            <p><strong>URL:</strong> <span class="url">GET http://localhost:8080/api/tasks</span></p>
+            <p><strong>Описание:</strong> Возвращает список всех задач</p>
+            <p><strong>Пример ответа (200 OK):</strong></p>
+            <div class="code-block">
+[
+  {
+    "id": 1,
+    "title": "Изучить REST API",
+    "description": "Изучить основы REST API и HTTP методы",
+    "completed": false
+  },
+  {
+    "id": 2,
+    "title": "Создать проект",
+    "description": "Создать новый проект для лабораторной работы",
+    "completed": false
+  }
+]
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                Получить задачу по ID
+            </h3>
+            <p><strong>URL:</strong> <span class="url">GET http://localhost:8080/api/tasks/{id}</span></p>
+            <p><strong>Описание:</strong> Возвращает задачу с указанным ID</p>
+            <p><strong>Пример:</strong> <code>GET http://localhost:8080/api/tasks/1</code></p>
+            <p><strong>Пример ответа (200 OK):</strong></p>
+            <div class="code-block">
+{
+  "id": 1,
+  "title": "Изучить REST API",
+  "description": "Изучить основы REST API и HTTP методы",
+  "completed": false
+}
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method post">POST</span>
+                Создать новую задачу
+            </h3>
+            <p><strong>URL:</strong> <span class="url">POST http://localhost:8080/api/tasks</span></p>
+            <p><strong>Описание:</strong> Создает новую задачу. ID присваивается автоматически.</p>
+            <p><strong>Заголовки:</strong> <code>Content-Type: application/json</code></p>
+            <p><strong>Тело запроса:</strong></p>
+            <div class="code-block">
+{
+  "title": "Новая задача",
+  "description": "Описание новой задачи",
+  "completed": false
+}
+            </div>
+            <p><strong>Пример ответа (201 Created):</strong></p>
+            <div class="code-block">
+{
+  "id": 4,
+  "title": "Новая задача",
+  "description": "Описание новой задачи",
+  "completed": false
+}
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method put">PUT</span>
+                Обновить задачу
+            </h3>
+            <p><strong>URL:</strong> <span class="url">PUT http://localhost:8080/api/tasks/{id}</span></p>
+            <p><strong>Описание:</strong> Обновляет существующую задачу</p>
+            <p><strong>Пример:</strong> <code>PUT http://localhost:8080/api/tasks/1</code></p>
+            <p><strong>Заголовки:</strong> <code>Content-Type: application/json</code></p>
+            <p><strong>Тело запроса:</strong></p>
+            <div class="code-block">
+{
+  "title": "Обновленная задача",
+  "description": "Обновленное описание",
+  "completed": true
+}
+            </div>
+            <p><strong>Пример ответа (200 OK):</strong></p>
+            <div class="code-block">
+{
+  "id": 1,
+  "title": "Обновленная задача",
+  "description": "Обновленное описание",
+  "completed": true
+}
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method delete">DELETE</span>
+                Удалить задачу
+            </h3>
+            <p><strong>URL:</strong> <span class="url">DELETE http://localhost:8080/api/tasks/{id}</span></p>
+            <p><strong>Описание:</strong> Удаляет задачу с указанным ID</p>
+            <p><strong>Пример:</strong> <code>DELETE http://localhost:8080/api/tasks/1</code></p>
+            <p><strong>Пример ответа (200 OK):</strong></p>
+            <div class="code-block">
+{
+  "message": "Task deleted successfully"
+}
+            </div>
+        </div>
+
+        <h2>Коды ответов HTTP</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Код</th>
+                    <th>Описание</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>200 OK</strong></td>
+                    <td>Успешный запрос</td>
+                </tr>
+                <tr>
+                    <td><strong>201 Created</strong></td>
+                    <td>Ресурс успешно создан</td>
+                </tr>
+                <tr>
+                    <td><strong>400 Bad Request</strong></td>
+                    <td>Неверный запрос (неверный формат JSON, отсутствуют обязательные поля)</td>
+                </tr>
+                <tr>
+                    <td><strong>404 Not Found</strong></td>
+                    <td>Ресурс не найден</td>
+                </tr>
+                <tr>
+                    <td><strong>405 Method Not Allowed</strong></td>
+                    <td>Метод не разрешен</td>
+                </tr>
+                <tr>
+                    <td><strong>500 Internal Server Error</strong></td>
+                    <td>Внутренняя ошибка сервера</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Инструкция по запуску</h2>
+        <div class="code-block">
+# 1. Компиляция
+cd Лб№5
+javac *.java
+
+# 2. Запуск сервера
+java RestApiServer
+
+# Или используйте bat-файл:
+start_server.bat
+        </div>
+
+        <h2>Тестирование</h2>
+        <div class="info-box">
+            <h3>Через Postman:</h3>
+            <ol>
+                <li>Откройте Postman</li>
+                <li>Импортируйте коллекцию <code>Postman_Collection.json</code></li>
+                <li>Запустите сервер</li>
+                <li>Выполните запросы из коллекции</li>
+            </ol>
+        </div>
+
+        <h2>Структура проекта</h2>
+        <div class="file-list">
+            <div class="file-item">
+                <strong>RestApiServer.java</strong> - Главный класс HTTP сервера
+            </div>
+            <div class="file-item">
+                <strong>TaskService.java</strong> - Сервис для управления задачами (бизнес-логика)
+            </div>
+            <div class="file-item">
+                <strong>Task.java</strong> - Модель данных (задача)
+            </div>
+            <div class="file-item">
+                <strong>JsonUtils.java</strong> - Утилиты для работы с JSON
+            </div>
+            <div class="file-item">
+                <strong>Postman_Collection.json</strong> - Коллекция запросов для Postman
+            </div>
+            <div class="file-item">
+                <strong>start_server.bat</strong> - Скрипт для запуска сервера
+            </div>
+        </div>
+
+        <h2>Особенности реализации</h2>
+        <ul>
+            <li>✅ Использует встроенный <code>HttpServer</code> из Java (без внешних зависимостей)</li>
+            <li>✅ Простой JSON парсер без внешних библиотек</li>
+            <li>✅ Хранение данных в памяти (ConcurrentHashMap)</li>
+            <li>✅ Поддержка CORS для работы с браузером</li>
+            <li>✅ Обработка ошибок и валидация данных</li>
+            <li>✅ RESTful архитектура</li>
+            <li>✅ Все основные HTTP методы: GET, POST, PUT, DELETE</li>
+        </ul>
+
+        <h2>Коллекция Postman</h2>
+        <div class="info-box">
+            <p>Файл <code>Postman_Collection.json</code> содержит готовую коллекцию со всеми запросами:</p>
+            <ul>
+                <li>GET - Получить все задачи</li>
+                <li>GET - Получить задачу по ID</li>
+                <li>POST - Создать новую задачу</li>
+                <li>PUT - Обновить задачу</li>
+                <li>DELETE - Удалить задачу</li>
+            </ul>
+            <p><strong>Импорт в Postman:</strong> File → Import → выберите Postman_Collection.json</p>
+        </div>
+    </div>
+</body>
+</html>
+
